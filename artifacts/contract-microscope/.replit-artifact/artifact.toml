@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Contract Under the Microscope"
+description = "A beginner-friendly Solidity code scanner that highlights heuristic access-control and reentrancy risks, explains findings, and exports a report."
+version = "1.0.0"
+id = "artifacts/contract-microscope"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19954
+
+[services.development]
+run = "pnpm --filter @workspace/contract-microscope run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/contract-microscope", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/contract-microscope/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19954"
+BASE_PATH = "/"
