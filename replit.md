@@ -1,6 +1,6 @@
-# [Project name]
+# Smart Contract Scanner
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A browser-based Solidity pattern scanner with Supabase email/password authentication.
 
 ## Run & Operate
 
@@ -9,11 +9,14 @@ _Replace the heading above with the project's name, and this line with one sente
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Required secrets for the scanner app: `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`
+- The scanner requires a signed-in Supabase user. Contract analysis remains local in the browser.
+- In Supabase Auth, enable email/password and email confirmations. Add the deployed app origin and its `/scan` callback URL to the allowed redirect URLs.
 
 ## Stack
 
-- pnpm workspaces, Node.js 24, TypeScript 5.9
+- pnpm workspaces, Node.js 24, TypeScript 5.9, Vite, React
+- Authentication: Supabase Auth (`@supabase/supabase-js`)
 - API: Express 5
 - DB: PostgreSQL + Drizzle ORM
 - Validation: Zod (`zod/v4`), `drizzle-zod`
@@ -30,7 +33,9 @@ _Populate as you build — non-obvious choices a reader couldn't infer from the 
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- `/` — product landing page
+- `/register` and `/login` — Supabase email/password account flows
+- `/scan` — authenticated local Solidity scanner
 
 ## User preferences
 
