@@ -1,6 +1,10 @@
 import { useMemo, useRef, useState } from 'react';
-import { AlertTriangle, Clipboard, Code2, Download, FileCode2, ScanSearch, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, Clipboard, Code2, Download, FileCode2, LogOut, ScanSearch, ShieldCheck } from 'lucide-react';
 import { scanSolidity, type Finding, type Severity } from './lib/scanner';
+import { Link, Redirect, Route, Switch, useLocation } from 'wouter';
+import LandingPage from './pages/landing';
+import AuthPage from './pages/auth';
+import { AuthProvider, useAuth } from './lib/auth-context';
 
 const VULNERABLE_SAMPLE = `// Example only — intentionally unsafe
 pragma solidity ^0.8.20;
@@ -60,7 +64,9 @@ contract GardenVault {
 
 const severities: Severity[] = ['Critical', 'High', 'Medium', 'Low'];
 
-function App() {
+function ScannerApp() {
+  const { user, signOut } = useAuth();
+  const [, navigate] = useLocation();
   const [source, setSource] = useState('');
   const [findings, setFindings] = useState<Finding[] | null>(null);
   const [scannedSource, setScannedSource] = useState('');
@@ -143,9 +149,9 @@ function App() {
       <header className="topbar">
         <div className="brand" data-testid="brand-product">
           <span className="brand-mark"><ScanSearch size={19} strokeWidth={1.8} /></span>
-          <span className="brand-name">Contract Under the Microscope<small>Solidity pattern scanner</small></span>
+          <span className="brand-name">Smart Contract Scanner<small>Solidity pattern scanner</small></span>
         </div>
-        <div className="top-note"><i aria-hidden="true" /> Runs locally in your browser</div>
+        <div className="scanner-account"><div className="top-note"><i aria-hidden="true" /> Runs locally in your browser</div><span className="auth-user">{user?.email}</span><button type="button" className="signout-btn" onClick={async () => { const error = await signOut(); if (error) showFeedback(error); else navigate('/login'); }}><LogOut size={13} /> Sign out</button></div>
       </header>
 
       <main className="main-wrap">
@@ -263,6 +269,30 @@ function App() {
       </main>
       {feedback && <div className="toast" role="status" data-testid="status-report-feedback">{feedback}</div>}
     </div>
+  );
+}
+
+function ProtectedScanner() {
+  const { user, loading, configured } = useAuth();
+  if (!configured) {
+    return <main className="auth-config-page"><span className="marketing-mark"><ScanSearch size={19} /></span><h1>Finish connecting Supabase</h1><p>Add <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> to your Replit Secrets, then restart the app.</p><Link className="hero-primary" href="/login">Go to login <span aria-hidden="true">→</span></Link></main>;
+  }
+  if (loading) return <div className="auth-loading" role="status">Restoring your sign-in…</div>;
+  if (!user) return <Redirect to="/login" />;
+  return <ScannerApp />;
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <Switch>
+        <Route path="/" component={LandingPage} />
+        <Route path="/login">{() => <AuthPage mode="login" />}</Route>
+        <Route path="/register">{() => <AuthPage mode="register" />}</Route>
+        <Route path="/scan" component={ProtectedScanner} />
+        <Route component={LandingPage} />
+      </Switch>
+    </AuthProvider>
   );
 }
 
