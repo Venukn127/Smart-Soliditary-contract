@@ -5,6 +5,7 @@ import { Link, Redirect, Route, Switch, useLocation } from 'wouter';
 import LandingPage from './pages/landing';
 import AuthPage from './pages/auth';
 import { AuthProvider, useAuth } from './lib/auth-context';
+import { supabaseConfigurationStatus } from './lib/supabase';
 
 const VULNERABLE_SAMPLE = `// Example only — intentionally unsafe
 pragma solidity ^0.8.20;
@@ -275,7 +276,8 @@ function ScannerApp() {
 function ProtectedScanner() {
   const { user, loading, configured } = useAuth();
   if (!configured) {
-    return <main className="auth-config-page"><span className="marketing-mark"><ScanSearch size={19} /></span><h1>Finish connecting Supabase</h1><p>Add <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> to your Replit Secrets, then restart the app.</p><Link className="hero-primary" href="/login">Go to login <span aria-hidden="true">→</span></Link></main>;
+    const hasInvalidUrl = supabaseConfigurationStatus === 'invalid-url';
+    return <main className="auth-config-page"><span className="marketing-mark"><ScanSearch size={19} /></span><h1>{hasInvalidUrl ? 'Supabase URL is invalid' : 'Finish connecting Supabase'}</h1><p>{hasInvalidUrl ? <>Set <code>VITE_SUPABASE_URL</code> to a complete HTTP or HTTPS URL in Replit Secrets. Do not include quotes or surrounding spaces.</> : <>Add <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> to your Replit Secrets.</>} Then restart the app.</p><Link className="hero-primary" href="/login">Go to login <span aria-hidden="true">→</span></Link></main>;
   }
   if (loading) return <div className="auth-loading" role="status">Restoring your sign-in…</div>;
   if (!user) return <Redirect to="/login" />;
